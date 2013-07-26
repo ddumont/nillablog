@@ -1,0 +1,135 @@
+/*
+ *  Nillablog vanilla plugin.
+ *  Copyright (C) 2011 ddumont@gmail.com
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ */
+ 
+/* Blog category styles  */
+ul.Discussions li.Item.NillaBlog {
+	border: 1px solid #BEC8CC;
+	margin: 14px 0 25px 0;
+	padding: 8px 0;
+	-moz-box-shadow: 0 0 20px rgba(0, 0, 0, .2);
+	-webkit-box-shadow: 0 0 20px rgba(0, 0, 0, .2);
+	-goog-ms-box-shadow: 0 0 20px rgba(0, 0, 0, .2);
+	box-shadow: 0 0 20px rgba(0, 0, 0, .2);
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	-goog-ms-border-radius: 5px;
+}
+
+ul.DataList .NillaBlog a.Title {
+	margin-top: 5px;
+	font: normal normal 22px Arial, Tahoma, Helvetica, FreeSans, sans-serif;	
+}
+ul.DataList .NillaBlog > div.Options {
+	margin: 4px 12px 0 0;
+}
+
+ul.Discussions .NillaBlog div.ItemContent {
+	margin: 0 12px;
+}
+
+.NillaBlog .More {
+	padding-left: 3px
+}
+
+.NillaBlog.Mine {
+	background: #FFFFFF;	
+}
+
+.Discussions .NillaBlog .Message {
+	padding: 4px 0 0 3px;
+	font-size: 13px;
+	line-height: 1.5;
+	color: #222;
+}
+
+div.DiscussionsTabs {
+	display: none;
+}
+
+.NillaBlog .RSS {
+	float: right;	
+}
+.NillaBlog .RSS img {
+	margin-right: 4px;
+}
+
+ul div.Meta span.plusone {
+	float: right;
+	margin: 1px -6px 0 0;	
+}
+
+
+/* Blog thread styles  */
+.FirstComment .Author img {
+	display: none;
+} 
+
+ul.MessageList li.Item.FirstComment.NillaBlog {
+	padding: 0px 12px 12px 12px;
+	margin-bottom: 15px;
+	background: white;
+	border: 1px solid #BEC8CC;
+	border-top: none;
+	-webkit-border-bottom-left-radius: 5px 5px;
+	-webkit-border-bottom-right-radius: 5px 5px;
+	-moz-border-bottom-left-radius: 5px 5px;
+	-moz-border-bottom-right-radius: 5px 5px;
+	-goog-ms-border-bottom-left-radius: 5px 5px;
+	-goog-ms-border-bottom-right-radius: 5px 5px;
+	border-bottom-left-radius: 5px 5px;
+	border-bottom-right-radius: 5px 5px;
+}
+
+ul.MessageList .FirstComment.NillaBlog div.Meta {
+	min-height: 30px;
+}
+
+div.Tabs.HeadingTabs.FirstPage {
+	margin-top: 14px;
+	padding: 13px 12px 4px 12px;	
+	background: white;
+	border: 1px solid #BEC8CC;
+	border-bottom: none;
+	-webkit-border-top-left-radius: 5px 5px;
+	-webkit-border-top-right-radius: 5px 5px;
+	-moz-border-top-left-radius: 5px 5px;
+	-moz-border-top-right-radius: 5px 5px;
+	-goog-ms-border-top-left-radius: 5px 5px;
+	-goog-ms-border-top-right-radius: 5px 5px;
+	border-top-left-radius: 5px 5px;
+	border-top-right-radius: 5px 5px;
+	z-index: 1000;
+}
+
+div.HeadingTabs div.SubTab {
+	font: normal normal 22px Arial, Tahoma, Helvetica, FreeSans, sans-serif;
+}
+div.HeadingTabs ul {
+  margin-top: -2px;
+}
+
+body.Discussion a.Bookmark {
+	margin: 4px 15px 0 8px;
+}
+
+.CommentCount {
+	display: none;
+}
+.CommentCount.NillaBlog {
+	display: inline;
+}
