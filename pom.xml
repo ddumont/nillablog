@@ -24,6 +24,8 @@
   <url>https://github.com/ddumont/nillablog</url>
   <scm>
   	<url>https://github.com/ddumont/nillablog</url>
+  	<developerConnection>scm:git:https://github.com/ddumont/nillablog.git</developerConnection>
+  	<tag>HEAD</tag>
   </scm>
   <issueManagement>
   	<system>github</system>
