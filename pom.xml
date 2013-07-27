@@ -20,7 +20,7 @@
   <version>1.8.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>nillablog-plugin</name>
-  <description>A blog plugin for vanilla 2+</description>
+  <description>A blog plugin for Vanilla 2+ (http://vanillaforums.org)</description>
   <url>https://github.com/ddumont/nillablog</url>
   <scm>
   	<url>https://github.com/ddumont/nillablog</url>
