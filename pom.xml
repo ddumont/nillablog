@@ -17,7 +17,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.canofsleep.vanilla</groupId>
   <artifactId>nillablog</artifactId>
-  <version>1.8.1</version>
+  <version>1.8.2-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>nillablog-plugin</name>
   <description>A blog plugin for Vanilla 2+ (http://vanillaforums.org)</description>
