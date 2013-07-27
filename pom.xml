@@ -47,8 +47,8 @@
   </developers>
   
   <build>
+    <defaultGoal>clean install</defaultGoal>
     <plugins>
-    
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
@@ -126,7 +126,31 @@
           </execution>
         </executions>
       </plugin>
-        
+      
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <version>0.8</version>
+        <configuration>
+          <excludes>
+            <exclude>.git/**</exclude>
+            <exclude>.gitignore</exclude>
+            <exclude>.buildpath</exclude>
+            <exclude>.classpath</exclude>
+            <exclude>.project</exclude>
+            <exclude>.settings/**</exclude>
+            <exclude>*.psd</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
   
