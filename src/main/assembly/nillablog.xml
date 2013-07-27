@@ -21,7 +21,7 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
     <fileSet>
-      <directory>NillaBlog</directory>
+      <directory>${project.plugin.name}</directory>
       <includes>
         <include>**</include>
       </includes>

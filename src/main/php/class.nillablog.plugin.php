@@ -16,14 +16,14 @@
  */
 
 $PluginInfo["NillaBlog"] = array(
-	"Name" => "NillaBlog",
-	"Description" => "A blog plugin for vanilla 2+",
-	"Version" => "1.8.1",
-	"Author" => "Dan Dumont",
-	"AuthorEmail" => "ddumont@gmail.com",
+	"Name" => "${project.plugin.name}",
+	"Description" => "${project.description}",
+	"Version" => "${project.version}",
+	"Author" => "${project.author.name}",
+	"AuthorEmail" => "${project.author.email}",
+	"AuthorUrl" => "${project.url}",
 	"SettingsUrl" => "/dashboard/settings/nillablog",
 	"SettingsPermission" => "Garden.Settings.Manage",
-	"AuthorUrl" => "https://github.com/ddumont/nillablog",
 	"RequiredApplications" => array("Vanilla" => "2.0.18") // This needs to be bumped when Vanilla releases with my contributed changes
 );
 

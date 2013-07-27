@@ -21,6 +21,7 @@
   <packaging>pom</packaging>
   <name>nillablog-plugin</name>
   <description>A blog plugin for vanilla 2+</description>
+  <url>https://github.com/ddumont/nillablog</url>
   <scm>
   	<url>https://github.com/ddumont/nillablog</url>
   </scm>
@@ -29,19 +30,36 @@
   	<url>https://github.com/ddumont/nillablog</url>
   </issueManagement>
   
+  <properties>
+    <project.author.name>Dan Dumont</project.author.name>
+    <project.author.email>ddumont@gmail.com</project.author.email>
+    <project.plugin.name>NillaBlog</project.plugin.name>
+  </properties>
+  
+  <developers>
+    <developer>
+      <name>${project.author.name}</name>
+      <email>${project.author.email}</email>
+      <roles>
+        <role>author</role>
+      </roles>
+    </developer>
+  </developers>
+  
   <build>
     <plugins>
-      
+    
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
         <version>2.4</version>
         <configuration>
           <encoding>UTF-8</encoding>
-          <outputDirectory>${project.build.directory}/NillaBlog</outputDirectory>
+          <outputDirectory>${project.build.directory}/${project.plugin.name}</outputDirectory>
           <resources>  
             <resource>
               <directory>src/main/php</directory>
+              <filtering>true</filtering>
             </resource>
             <resource>
               <directory>${basedir}</directory>
@@ -78,7 +96,7 @@
                         <cssSourceFile>custom.css</cssSourceFile>
                     </cssSourceFiles>
                     <nosuffix>true</nosuffix>
-                    <cssTargetDir>../NillaBlog/design</cssTargetDir>
+                    <cssTargetDir>../${project.plugin.name}/design</cssTargetDir>
                     <cssFinalFile>custom.css</cssFinalFile>
                 </configuration>
                 <goals>
@@ -111,4 +129,5 @@
         
     </plugins>
   </build>
+  
 </project>
