@@ -65,6 +65,7 @@
               <directory>${basedir}</directory>
               <includes>
                 <include>LICENSE</include>
+                <include>icon.png</include>
               </includes>
             </resource>
           </resources>              
