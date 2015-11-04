@@ -42,7 +42,7 @@ class NillaBlog extends Gdn_Plugin {
 
 		$Validation = new Gdn_Validation();
 		$ConfigurationModel = new Gdn_ConfigurationModel($Validation);
-		$ConfigurationModel->SetField(array("Plugins.NillaBlog.CategoryIDs"));
+		$ConfigurationModel->SetField(array("Plugins.NillaBlog.CategoryIDs") => array());
 		$ConfigurationModel->SetField("Plugins.NillaBlog.DisableCSS");
 		$ConfigurationModel->SetField("Plugins.NillaBlog.PostsPerPage");
 		$ConfigurationModel->SetField("Plugins.NillaBlog.GooglePlusOne");
