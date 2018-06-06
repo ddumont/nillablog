@@ -1,4 +1,4 @@
-<?php if (!defined("APPLICATION")) exit();
+<?php
 /*
  *  (C) Copyright 2011, canofsleep.com
  *
@@ -16,15 +16,15 @@
  */
 
 $PluginInfo["NillaBlog"] = array(
-	"Name" => "NillaBlog",
-	"Description" => "A blog plugin for Vanilla 2+ (http://vanillaforums.org)",
-	"Version" => "1.8.3",
-	"Author" => "Dan Dumont",
-	"AuthorEmail" => "ddumont@gmail.com",
-	"AuthorUrl" => "https://github.com/ddumont/nillablog",
-	"SettingsUrl" => "/dashboard/settings/nillablog",
-	"SettingsPermission" => "Garden.Settings.Manage",
-	"RequiredApplications" => array("Vanilla" => "2.6") // This needs to be bumped when Vanilla releases with my contributed changes
+    "Name" => "${project.plugin.name}",
+    "Description" => "${project.description}",
+    "Version" => "${project.version}",
+    "Author" => "${project.author.name}",
+    "AuthorEmail" => "${project.author.email}",
+    "AuthorUrl" => "${project.url}",
+    "SettingsUrl" => "/dashboard/settings/nillablog",
+    "SettingsPermission" => "Garden.Settings.Manage",
+    "RequiredApplications" => array("Vanilla" => "2.0.18") // This needs to be bumped when Vanilla releases with my contributed changes
 );
 
 /**
@@ -32,197 +32,264 @@ $PluginInfo["NillaBlog"] = array(
  * @author ddumont@gmail.com
  */
 class NillaBlogPlugin extends Gdn_Plugin {
+    /**
+     * Build the setting page.
+     * @param $sender
+     */
+    public function settingsController_nillaBlog_create($sender) {
+        $sender->permission('Garden.Settings.Manage');
 
-	/**
-	 * Build the setting page.
-	 * @param $Sender
-	 */
-	public function SettingsController_NillaBlog_Create($Sender) {
-		$Sender->Permission('Garden.Settings.Manage');
+        $validation = new Gdn_Validation();
+        $configurationModel = new Gdn_ConfigurationModel($validation);
+        $configurationModel->setField(array("Plugins.NillaBlog.CategoryIDs" => []));
+        $configurationModel->setField("Plugins.NillaBlog.DisableCSS");
+        $configurationModel->setField("Plugins.NillaBlog.PostsPerPage");
+        $configurationModel->setField("Plugins.NillaBlog.GooglePlusOne");
+        $sender->Form->setModel($configurationModel);
 
-		$Validation = new Gdn_Validation();
-		$ConfigurationModel = new Gdn_ConfigurationModel($Validation);
-		$ConfigurationModel->SetField(array("Plugins.NillaBlog.CategoryIDs" => array()));
-		$ConfigurationModel->SetField("Plugins.NillaBlog.DisableCSS");
-		$ConfigurationModel->SetField("Plugins.NillaBlog.PostsPerPage");
-		$ConfigurationModel->SetField("Plugins.NillaBlog.GooglePlusOne");
-		$Sender->Form->SetModel($ConfigurationModel);
+        if ($sender->Form->authenticatedPostBack() === false) {
+            $sender->Form->setData($configurationModel->Data);
+        } else {
+            $data = $sender->Form->formValues();
+//            $configurationModel->Validation->ApplyRule("Plugins.NillaBlog.CategoryIDs", "RequiredArray");  // Not required
+            $configurationModel->Validation->applyRule("Plugins.NillaBlog.PostsPerPage", "Integer");
+            if ($sender->Form->save() !== false) {
+                $sender->informMessage(t("Your settings have been saved."));
+            }
+        }
 
-		if ($Sender->Form->AuthenticatedPostBack() === FALSE) {
-			$Sender->Form->SetData($ConfigurationModel->Data);
-		} else {
-        	$Data = $Sender->Form->FormValues();
-//        	$ConfigurationModel->Validation->ApplyRule("Plugins.NillaBlog.CategoryIDs", "RequiredArray");  // Not required
-			$ConfigurationModel->Validation->ApplyRule("Plugins.NillaBlog.PostsPerPage", "Integer");
-        	if ($Sender->Form->Save() !== FALSE) {
-        		$Sender->InformMessage(T("Your settings have been saved."));
-        	}
-		}
+        $sender->setHighlightRoute('dashboard/settings');
+        $sender->setData("Title", T("NillaBlog Settings"));
 
-		$Sender->SetHighlightRoute('dashboard/settings');
-		$Sender->SetData("Title", T("NillaBlog Settings"));
+        $categoryModel = new CategoryModel();
+        $sender->setData("CategoryData", $categoryModel->getAll(), true);
+        array_shift($sender->CategoryData->result());
 
-		$CategoryModel = new CategoryModel();
-		$Sender->SetData("CategoryData", $CategoryModel->GetAll(), TRUE);
-		array_shift($Sender->CategoryData->Result());
+        $sender->render("settings", "", "plugins/NillaBlog");
+    }
 
-		$Sender->Render("settings", "", "plugins/NillaBlog");
-	}
+    /**
+     * Adjusts the number of posts to display in the blog category.
+     *
+     * @param CategoriesController $sender Instance of the calling class.
+     *
+     * @return void.
+     */
+    public function categoriesController_beforeGetDiscussions_handler($sender) {
+        if (!in_array($sender->CategoryID, c("Plugins.NillaBlog.CategoryIDs"))) {
+            return;
+        }
+        $sender->EventArguments['PerPage'] = c("Plugins.NillaBlog.PostsPerPage");
+    }
 
-	/**
-	 * Adjusts the number of posts to display in the blog category.
-	 * @param $Sender
-	 */
-	public function CategoriesController_BeforeGetDiscussions_Handler($Sender) {
-		if ( !in_array($Sender->CategoryID, C("Plugins.NillaBlog.CategoryIDs")) )
-			return;
-		$Sender->EventArguments['PerPage'] = C("Plugins.NillaBlog.PostsPerPage");
-	}
+    /**
+     * Insert the first comment under the discussion title for the blog category.
+     *
+     * This turns the blog category into a list of blog posts.
+     *
+     * @param CategoriesController $sender Instance of the calling class.
+     *
+     * @return void.
+     */
+    public function categoriesController_afterDiscussionTitle_handler($sender) {
+        if (!in_array($sender->CategoryID, c("Plugins.NillaBlog.CategoryIDs"))) {
+            return;
+        }
 
-	/**
-	 * Insert the first comment under the discussion title for the blog category.
-	 * This turns the blog category into a list of blog posts.
-	 * @param $Sender
-	 */
-	public function CategoriesController_AfterDiscussionTitle_Handler($Sender) {
-		if ( !in_array($Sender->CategoryID, C("Plugins.NillaBlog.CategoryIDs")) )
-			return;
+        $discussion = $sender->EventArguments['Discussion'];
 
-		$Discussion = $Sender->EventArguments['Discussion'];
+        $body = $discussion->Body;
+        $end = strrpos($body, "<hr");
+        if ($end) {
+            $body = substr($body, 0, $end);
+        }
+        $formatBody = Gdn_Format::To($body, $discussion->Format);
+        ?>
+            <ul class="MessageList">
+                <li>
+                    <div class="Message">
+                        <?php echo $formatBody; ?>
+                    </div>
+                </li>
+                <?php if ($end) : ?>
+                <li>
+                    <?php
+                    echo anchor(
+                        t("Read more"),
+                        discussionUrl($discussion),
+                        ["class" => "More"]
+                    );
+                    ?>
+                </li>
+                <?php endif; ?>
+            </ul>
+        <?php
+    }
 
-		$Body = $Discussion->Body;
-		$end = strrpos($Body, "<hr");
-		if ($end)
-			$Body = substr($Body, 0, $end);
-		$Discussion->FormatBody = Gdn_Format::To($Body, $Discussion->Format);
-		?>
-			<ul class="MessageList">
-				<li>
-					<div class="Message">
-						<?php echo $Discussion->FormatBody; ?>
-					</div>
-				</li>
-				<?php if ($end) { ?>
-					<li>
-						<a href="<?php echo Gdn::Request()->Url(ConcatSep("/", "discussion", $Discussion->DiscussionID, Gdn_Format::Url($Discussion->Name)))?>"
-						   class="More"><?php echo T("Read more");?></a>
-					</li>
-				<?php } ?>
-			</ul>
-		<?php
-	}
+    /**
+     * Adds the blog subscription link to each post for easier access.
+     *
+     * @param CategoriesController $sender Instance of the calling class.
+     *
+     * @return void.
+     */
+    public function categoriesController_discussionMeta_handler($sender) {
+        if (!in_array($sender->CategoryID, c("Plugins.NillaBlog.CategoryIDs"))) {
+            return;
+        }
 
-	/**
-	 * Adds the blog subscription link to each post for easier access.
-	 * @param $Sender
-	 */
-	public function CategoriesController_DiscussionMeta_Handler($Sender) {
-		if ( !in_array($Sender->CategoryID, C("Plugins.NillaBlog.CategoryIDs")) )
-			return;
+        $discussion = $sender->EventArguments['Discussion'];
+        ?>
+        <span class="RSS">
+            <a href="<?php echo url(concatSep('/', $sender->SelfUrl, 'feed.rss')); ?>">
+                <img src="<?php echo asset("/applications/dashboard/design/images/rss.gif"); ?>"></img>
+                <?php echo t("Subscribe to this blog"); ?>
+            </a>
+        </span>
+        <?php
 
-		$Discussion = $Sender->EventArguments['Discussion'];
-		?>
-			<span class='RSS'>
-				<a href='<?php echo Gdn::Request()->Url(ConcatSep("/", $Sender->SelfUrl, "feed.rss")); ?>'>
-					<img src="<?php echo Asset("/applications/dashboard/design/images/rss.gif"); ?>"></img>
-					<?php echo T("Subscribe to this blog"); ?>
-				</a>
-			</span>
-		<?php
+        if (!c("Plugins.NillaBlog.GooglePlusOne")) {
+            return;
+        }
+        ?>
+        <span class="plusone">
+            <g:plusone href="<?php echo discussionUrl($discussion); ?>" size="medium">
+            </g:plusone>
+        </span>
+        <?php
+    }
 
-		if (C("Plugins.NillaBlog.GooglePlusOne")) {
-			?><span class='plusone'>
-				<g:plusone href="<?php echo Gdn::Request()->Url(ConcatSep("/", "discussion", $Discussion->DiscussionID, Gdn_Format::Url($Discussion->Name)), TRUE);
-					?>" size="medium">
-				</g:plusone>
-			</span><?php
-		}
-	}
+    /**
+     * Adds the class 'NillaBlog' to every discussion in the blog category list.
+     *
+     * Allows for themes to style the blog independently of the plugin.
+     *
+     * @param CategoriesController $sender Instance of the calling class.
+     *
+     * @return void.
+     */
+    public function categoriesController_beforeDiscussionName_handler($sender) {
+        if (!in_array($sender->CategoryID, c("Plugins.NillaBlog.CategoryIDs"))) {
+            return;
+        }
+        $sender->EventArguments["CssClass"] .= " NillaBlog NillaBlog".$sender->CategoryID." ";
+    }
 
-	/**
-	 * Adds the class 'NillaBlog' to every discussion in the blog category list.
-	 * Allows for themes to style the blog independently of the plugin.
-	 * @param $Sender
-	 */
-	public function CategoriesController_BeforeDiscussionName_Handler($Sender) {
-		if ( !in_array($Sender->CategoryID, C("Plugins.NillaBlog.CategoryIDs")) )
-			return;
-		$Sender->EventArguments["CssClass"] .= " NillaBlog NillaBlog".$Sender->CategoryID." ";
-	}
+    /**
+     * Adds the class 'NillaBlog' to every comment (including the first post)
+     * in the blog category list.
+     *
+     * Allows for themes to style the blog independently of the plugin.
+     *
+     * @param DiscussionController $sender Instance of the calling class.
+     *
+     * @return void.
+     */
+    public function discussionController_beforeCommentDisplay_handler($sender) {
+        if (!in_array($sender->CategoryID, c("Plugins.NillaBlog.CategoryIDs"))) {
+            return;
+        }
+        $sender->EventArguments["CssClass"] .= " NillaBlog NillaBlog".$sender->CategoryID." ";
+    }
 
-	/**
-	 * Adds the class 'NillaBlog' to every comment (including the first post) in the blog category list.
-	 * Allows for themes to style the blog independently of the plugin.
-	 * @param $Sender
-	 */
-	public function DiscussionController_BeforeCommentDisplay_Handler($Sender) {
-		if ( !in_array($Sender->CategoryID, C("Plugins.NillaBlog.CategoryIDs")) )
-			return;
-		$Sender->EventArguments["CssClass"] .= " NillaBlog NillaBlog".$Sender->CategoryID." ";
-	}
+    /**
+     * Sorts blog posts by creation time rather than last comment.
+     *
+     * @param DiscussionModel $sender Instance of the calling class.
+     *
+     * @return void.
+     */
+    public function discussionModel_beforeGet_handler($sender) {
+        $wheres = $sender->EventArguments["Wheres"];
+        if (
+            !array_key_exists("d.CategoryID", $wheres) ||
+            !in_array($wheres["d.CategoryID"], c("Plugins.NillaBlog.CategoryIDs"))
+        ) {
+            return;
+        }
 
-	/**
-	 * Sorts blog posts by creation time rather than last comment.
-	 * @param $Sender
-	 */
-	public function DiscussionModel_BeforeGet_Handler($Sender) {
-		$Wheres = $Sender->EventArguments["Wheres"];
-		if (!array_key_exists("d.CategoryID", $Wheres) || !in_array($Wheres["d.CategoryID"], C("Plugins.NillaBlog.CategoryIDs")))
-			return;
+        $sender->EventArguments["SortField"] = "d.DateInserted";
+        $sender->EventArguments["SortDirection"] = "desc";
+    }
 
-		$Sender->EventArguments["SortField"] = "d.DateInserted";
-		$Sender->EventArguments["SortDirection"] = "desc";
-	}
+    /**
+     * Insert default CSS into the discussion list for the blog.
+     *
+     * @param CategoriesController $sender Instance of the calling class.
+     *
+     * @return void.
+     */
+    public function categoriesController_render_before($sender) {
+        if (
+            !in_array($sender->CategoryID, c("Plugins.NillaBlog.CategoryIDs")) ||
+            c("Plugins.NillaBlog.DisableCSS")
+        ) {
+            return;
+        }
 
-	/**
-	 * Insert default CSS into the discussion list for the blog.
-	 * @param $Sender
-	 */
-	public function CategoriesController_Render_Before($Sender) {
-		if ( !in_array($Sender->CategoryID, C("Plugins.NillaBlog.CategoryIDs")) || C("Plugins.NillaBlog.DisableCSS") )
-			return;
+        if (c("Plugins.NillaBlog.GooglePlusOne")) {
+            $sender->addJsFile('http://apis.google.com/js/plusone.js');
+        }
 
-		if (C("Plugins.NillaBlog.GooglePlusOne"))
-			$Sender->AddJsFile('http://apis.google.com/js/plusone.js');
+        $sender->addCssFile($this->getResource('design/custom.css', false, false));
+    }
 
-		$Sender->AddCssFile($this->GetResource('design/custom.css', FALSE, FALSE));
-	}
+    /**
+     * Insert default CSS into the comment list for the blog discussion.
+     *
+     * @param DiscussionController $sender Instance of the calling class.
+     *
+     * @return void.
+     */
+    public function discussionController_render_before($sender) {
+        if (
+            !in_array($sender->CategoryID, c("Plugins.NillaBlog.CategoryIDs")) ||
+            c("Plugins.NillaBlog.DisableCSS")
+        ) {
+            return;
+        }
 
-	/**
-	 * Insert default CSS into the comment list for the blog discussion.
-	 * @param $Sender
-	 */
-	public function DiscussionController_Render_Before($Sender) {
-		if ( !in_array($Sender->CategoryID, C("Plugins.NillaBlog.CategoryIDs")) || C("Plugins.NillaBlog.DisableCSS") )
-			return;
+        if (c("Plugins.NillaBlog.GooglePlusOne")) {
+            $sender->addJsFile('http://apis.google.com/js/plusone.js');
+        }
 
-		if (C("Plugins.NillaBlog.GooglePlusOne"))
-			$Sender->AddJsFile('http://apis.google.com/js/plusone.js');
+        $sender->addCssFile($this->getResource('design/custom.css', false, false));
+    }
 
-		$Sender->AddCssFile($this->GetResource('design/custom.css', FALSE, FALSE));
-	}
+    /**
+     * Insert a clickable comments link appropriate for the blog.  We'll hide the other comment count with CSS.
+     *
+     * @param CategoriesController $sender Instance of the calling class.
+     *
+     * @return void.
 
-	/**
-	 * Insert a clickable comments link appropriate for the blog.  We'll hide the other comment count with CSS.
-	 * @param $Sender
-	 */
-	public function CategoriesController_BeforeDiscussionMeta_Handler($Sender) {
-		if ( !in_array($Sender->CategoryID, C("Plugins.NillaBlog.CategoryIDs")) || C("Plugins.NillaBlog.DisableCSS") )
-			return;
+     */
+    public function categoriesController_beforeDiscussionMeta_handler($sender) {
+        if (
+            !in_array($sender->CategoryID, c("Plugins.NillaBlog.CategoryIDs")) ||
+            c("Plugins.NillaBlog.DisableCSS")
+        ) {
+            return;
+        }
 
-		$Discussion = $Sender->EventArguments['Discussion'];
-		$Count = $Discussion->CountComments - 1;
-		$Label = sprintf(Plural($Count, '%s comment', '%s comments'), $Count);
-		?>
-			<span class="CommentCount NillaBlog NillaBlog<?php echo $Sender->CategoryID;?>>">
-				<a href="<?php
-					echo Gdn::Request()->Url(ConcatSep("/", "discussion", $Discussion->DiscussionID, Gdn_Format::Url($Discussion->Name).($Count > 0 ? "#Item_2" : "")));
-				?>">
-					<?php echo $Label; ?>
-				</a>
-			</span>
-		<?php
-	}
+        $discussion = $sender->EventArguments['Discussion'];
+        $count = $discussion->CountComments - 1;
+        $label = sprintf(plural($count, '%s comment', '%s comments'), $count);
+        ?>
+        <span class="CommentCount NillaBlog NillaBlog<?php echo $sender->CategoryID;?>>">
+            <a href="<?php echo url(
+            	concatSep(
+            		"/",
+            		"discussion",
+            		$discussion->DiscussionID,
+            		Gdn_Format::url($discussion->Name).($count > 0 ? "#Item_2" : "")
+            	)
+            );
+            ?>">
+                <?php echo $label; ?>
+            </a>
+        </span>
+        <?php
+    }
 
-	public function Setup() {}
 }
