@@ -24,7 +24,8 @@ $PluginInfo["NillaBlog"] = array(
 	"AuthorUrl" => "${project.url}",
 	"SettingsUrl" => "/dashboard/settings/nillablog",
 	"SettingsPermission" => "Garden.Settings.Manage",
-	"RequiredApplications" => array("Vanilla" => "2.6") // This needs to be bumped when Vanilla releases with my contributed changes
+	"RequiredApplications" => array("Vanilla" => "2.6"),
+	"License" => "Apache License 2.0"
 );
 
 /**
