@@ -24,14 +24,14 @@ $PluginInfo["NillaBlog"] = array(
 	"AuthorUrl" => "${project.url}",
 	"SettingsUrl" => "/dashboard/settings/nillablog",
 	"SettingsPermission" => "Garden.Settings.Manage",
-	"RequiredApplications" => array("Vanilla" => "2.0.18") // This needs to be bumped when Vanilla releases with my contributed changes
+	"RequiredApplications" => array("Vanilla" => "2.6") // This needs to be bumped when Vanilla releases with my contributed changes
 );
 
 /**
  * NillaBlog plugin for Vanilla
  * @author ddumont@gmail.com
  */
-class NillaBlog extends Gdn_Plugin {
+class NillaBlogPlugin extends Gdn_Plugin {
 
 	/**
 	 * Build the setting page.
@@ -54,18 +54,19 @@ class NillaBlog extends Gdn_Plugin {
         	$Data = $Sender->Form->FormValues();
 //        	$ConfigurationModel->Validation->ApplyRule("Plugins.NillaBlog.CategoryIDs", "RequiredArray");  // Not required
 			$ConfigurationModel->Validation->ApplyRule("Plugins.NillaBlog.PostsPerPage", "Integer");
-        	if ($Sender->Form->Save() !== FALSE)
-        		$Sender->StatusMessage = T("Your settings have been saved.");
+        	if ($Sender->Form->Save() !== FALSE) {
+        		$Sender->InformMessage(T("Your settings have been saved."));
+        	}
 		}
 
-		$Sender->AddSideMenu();
+		$Sender->SetHighlightRoute('dashboard/settings');
 		$Sender->SetData("Title", T("NillaBlog Settings"));
 
 		$CategoryModel = new CategoryModel();
 		$Sender->SetData("CategoryData", $CategoryModel->GetAll(), TRUE);
 		array_shift($Sender->CategoryData->Result());
 
-		$Sender->Render($this->GetView("settings.php"));
+		$Sender->Render("settings", "", "plugins/NillaBlog");
 	}
 
 	/**
